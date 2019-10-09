@@ -1,0 +1,428 @@
+PC-A
+IP ADDRESS:172.30.10.3
+Subnet Mask:255.255.255.0
+Gateway:172.30.10.1
+PC-B
+IP ADDRESS:209.165.201.2
+Subnet Mask:255.255.255.0
+Gateway:209.165.201.1
+PC-B
+IP ADDRESS:172.30.30.3
+Subnet Mask:255.255.255.0
+Gateway:172.30.30.1
+
+R1
+Router>en
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#hostname R1
+R1(config)#int g0/1
+R1(config-if)#ip address 172.30.10.1 255.255.255.0
+R1(config-if)#no shutdown
+
+R1(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+R1(config-if)#int s0/0/0
+R1(config-if)#
+R1(config-if)#exit
+R1(config)#interface Serial0/0/0
+R1(config-if)#clock rate 1000000
+R1(config-if)#ip address 10.1.1.1 255.255.255.252
+R1(config-if)#no shutdown
+
+%LINK-5-CHANGED: Interface Serial0/0/0, changed state to down
+R1(config-if)#
+
+R2
+Router>en
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#hostname R2
+R2(config)#int g0/1
+R2(config-if)#ip address 209.165.201.1 255.255.255.0
+R2(config-if)#no shutdown
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+R2(config-if)#int s0/0/0
+R2(config-if)#ip address 10.1.1.2 255.255.255.252
+R2(config-if)#no shutdown
+
+R2(config-if)#
+%LINK-5-CHANGED: Interface Serial0/0/0, changed state to up
+
+R2(config-if)#
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/0, changed state to up
+
+R2(config-if)#int s0/0/0
+R2(config-if)#
+R2(config-if)#exit
+R2(config)#interface Serial0/0/0
+R2(config-if)#clock rate 1000000
+This command applies only to DCE interfaces
+R2(config-if)#interface Serial0/0/1
+R2(config-if)#clock rate 1000000
+R2(config-if)#ip address 10.2.2.2 255.255.255.252
+R2(config-if)#no shutdown
+
+%LINK-5-CHANGED: Interface Serial0/0/1, changed state to down
+
+R3
+Router>en 
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#hostname R3
+R3(config)#int g0/1
+R3(config-if)#ip address 172.30.10.1 255.255.255.0
+R3(config-if)#no shutdown
+
+R3(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/1, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+R3(config-if)#int s0/0/1
+R3(config-if)#ip address 10.2.2.1 255.255.255.252
+R3(config-if)#no shutdown
+
+R3(config-if)#
+%LINK-5-CHANGED: Interface Serial0/0/1, changed state to up
+
+R3(config-if)#
+%LINEPROTO-5-UPDOWN: Line protocol on Interface Serial0/0/1, changed state to up
+
+R3(config)#interface Serial0/0/1
+R3(config-if)#clock rate 1000000
+This command applies only to DCE interfaces
+R3(config-if)#
+
+
+R1
+R1>en
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#route rip
+R1(config-router)#version 2
+R1(config-router)#passive-interface g0/1
+R1(config-router)#do show ip route connected
+ C   10.1.1.0/30  is directly connected, Serial0/0/0
+ C   172.30.10.0/24  is directly connected, GigabitEthernet0/1
+
+R1(config-router)#network 172.30.0.0
+R1(config-router)#network 10.0.0.0
+
+R3
+
+R3(config-if)#exit
+R3(config)#route rip
+R3(config-router)#version 2
+R3(config-router)#passive-interface g0/1
+R3(config-router)#do show ip route connected
+ C   10.2.2.0/30  is directly connected, Serial0/0/1
+ C   172.30.10.0/24  is directly connected, GigabitEthernet0/1
+
+R3(config-router)#network 10.0.0.0
+R3(config-router)#network 172.30.0.0
+
+R2
+
+R2>en
+R2#ping 10.1.1.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.1.1.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/2/5 ms
+
+R2#ping 10.2.2.1
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 10.2.2.1, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/3/12 ms
+
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#route rip
+R2(config-router)#version 2
+R2(config-router)#do show ip route connected
+ C   10.1.1.0/30  is directly connected, Serial0/0/0
+ C   10.2.2.0/30  is directly connected, Serial0/0/1
+ C   209.165.201.0/24  is directly connected, GigabitEthernet0/1
+
+R2(config-router)#network 10.0.0.0
+R2(config-router)#end
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R2#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol 
+GigabitEthernet0/0     unassigned      YES unset  administratively down down 
+GigabitEthernet0/1     209.165.201.1   YES manual up                    up 
+Serial0/0/0            10.1.1.2        YES manual up                    up 
+Serial0/0/1            10.2.2.2        YES manual up                    up 
+Vlan1                  unassigned      YES unset  administratively down down
+
+
+Pc-A
+terminal
+ping 209.165.201.2
+ping 172.30.30.3
+
+Pc-C
+ping 209.165.201.2
+ping 172.30.10.3
+
+R2
+R2#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.2/32 is directly connected, Serial0/0/0
+C       10.2.2.0/30 is directly connected, Serial0/0/1
+L       10.2.2.2/32 is directly connected, Serial0/0/1
+R    172.30.0.0/16 [120/1] via 10.1.1.1, 00:00:29, Serial0/0/0
+                   [120/1] via 10.2.2.1, 00:00:02, Serial0/0/1
+     209.165.201.0/24 is variably subnetted, 2 subnets, 2 masks
+C       209.165.201.0/24 is directly connected, GigabitEthernet0/1
+L       209.165.201.1/32 is directly connected, GigabitEthernet0/1
+
+R3
+
+R3>en
+R3#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+R       10.1.1.0/30 [120/1] via 10.2.2.2, 00:00:15, Serial0/0/1
+C       10.2.2.0/30 is directly connected, Serial0/0/1
+L       10.2.2.1/32 is directly connected, Serial0/0/1
+     172.30.0.0/16 is variably subnetted, 2 subnets, 2 masks
+C       172.30.10.0/24 is directly connected, GigabitEthernet0/1
+L       172.30.10.1/32 is directly connected, GigabitEthernet0/1
+
+R1
+R1>en
+R1#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.1/32 is directly connected, Serial0/0/0
+R       10.2.2.0/30 [120/1] via 10.1.1.2, 00:00:06, Serial0/0/0
+     172.30.0.0/16 is variably subnetted, 2 subnets, 2 masks
+C       172.30.10.0/24 is directly connected, GigabitEthernet0/1
+L       172.30.10.1/32 is directly connected, GigabitEthernet0/1
+
+R1#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R1(config)#route rip
+R1(config-router)#no auto-summary
+R1(config-router)#end
+R1#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R1#clear ip route *
+
+R2
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#route rip
+R2(config-router)#no auto-summary
+R2(config-router)#end
+R2#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R2#clear ip route *
+
+R3
+
+R3#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R3(config)#route rip
+R3(config-router)#no auto-summary
+R3(config-router)#end
+R3#
+%SYS-5-CONFIG_I: Configured from console by console
+
+R3#clear ip route *
+
+R2
+R2#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.2/32 is directly connected, Serial0/0/0
+C       10.2.2.0/30 is directly connected, Serial0/0/1
+L       10.2.2.2/32 is directly connected, Serial0/0/1
+     172.30.0.0/16 is variably subnetted, 2 subnets, 2 masks
+R       172.30.0.0/16 [120/1] via 10.2.2.1, 00:01:51, Serial0/0/1
+R       172.30.10.0/24 [120/1] via 10.1.1.1, 00:00:01, Serial0/0/0
+                       [120/1] via 10.2.2.1, 00:00:04, Serial0/0/1
+     209.165.201.0/24 is variably subnetted, 2 subnets, 2 masks
+C       209.165.201.0/24 is directly connected, GigabitEthernet0/1
+L       209.165.201.1/32 is directly connected, GigabitEthernet0/1
+
+R1
+R1#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.1/32 is directly connected, Serial0/0/0
+R       10.2.2.0/30 [120/1] via 10.1.1.2, 00:00:25, Serial0/0/0
+     172.30.0.0/16 is variably subnetted, 3 subnets, 3 masks
+R       172.30.0.0/16 [120/2] via 10.1.1.2, 00:00:25, Serial0/0/0
+C       172.30.10.0/24 is directly connected, GigabitEthernet0/1
+L       172.30.10.1/32 is directly connected, GigabitEthernet0/1
+
+R3
+R3#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+R       10.1.1.0/30 [120/1] via 10.2.2.2, 00:00:17, Serial0/0/1
+C       10.2.2.0/30 is directly connected, Serial0/0/1
+L       10.2.2.1/32 is directly connected, Serial0/0/1
+     172.30.0.0/16 is variably subnetted, 2 subnets, 2 masks
+C       172.30.10.0/24 is directly connected, GigabitEthernet0/1
+L       172.30.10.1/32 is directly connected, GigabitEthernet0/1
+
+R2
+R2#debug ip rip
+RIP protocol debugging is on
+R2#RIP: received v2 update from 10.2.2.1 on Serial0/0/1
+      172.30.10.0/24 via 0.0.0.0 in 1 hops
+RIP: sending  v2 update to 224.0.0.9 via Serial0/0/0 (10.1.1.2)
+RIP: build update entries
+      10.2.2.0/30 via 0.0.0.0, metric 1, tag 0
+RIP: sending  v2 update to 224.0.0.9 via Serial0/0/1 (10.2.2.2)
+RIP: build update entries
+      10.1.1.0/30 via 0.0.0.0, metric 1, tag 0
+RIP: received v2 update from 10.1.1.1 on Serial0/0/0
+      172.30.10.0/24 via 0.0.0.0 in 1 hops
+RIP: received v2 update from 10.2.2.1 on Serial0/0/1
+      172.30.10.0/24 via 0.0.0.0 in 1 hops
+RIP: sending  v2 update to 224.0.0.9 via Serial0/0/0 (10.1.1.2)
+RIP: build update entries
+      10.2.2.0/30 via 0.0.0.0, metric 1, tag 0
+RIP: sending  v2 update to 224.0.0.9 via Serial0/0/1 (10.2.2.2)
+RIP: build update entries
+      10.1.1.0/30 via 0.0.0.0, metric 1, tag 0
+All possible debugging has been turned off
+R2#undebug all
+All possible debugging has been turned off
+R2#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+R2(config)#ip route 0.0.0.0 0.0.0.0 209.165.201.2
+R2(config)#router rip
+R2(config-router)#default-information originate
+
+R1
+R1>en 
+R1#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is 10.1.1.2 to network 0.0.0.0
+
+     10.0.0.0/8 is variably subnetted, 3 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.1/32 is directly connected, Serial0/0/0
+R       10.2.2.0/30 [120/1] via 10.1.1.2, 00:00:27, Serial0/0/0
+     172.30.0.0/16 is variably subnetted, 2 subnets, 2 masks
+C       172.30.10.0/24 is directly connected, GigabitEthernet0/1
+L       172.30.10.1/32 is directly connected, GigabitEthernet0/1
+R*   0.0.0.0/0 [120/1] via 10.1.1.2, 00:00:27, Serial0/0/0
+
+R2
+
+R2#show ip route
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2, E - EGP
+       i - IS-IS, L1 - IS-IS level-1, L2 - IS-IS level-2, ia - IS-IS inter area
+       * - candidate default, U - per-user static route, o - ODR
+       P - periodic downloaded static route
+
+Gateway of last resort is 209.165.201.2 to network 0.0.0.0
+
+     10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks
+C       10.1.1.0/30 is directly connected, Serial0/0/0
+L       10.1.1.2/32 is directly connected, Serial0/0/0
+C       10.2.2.0/30 is directly connected, Serial0/0/1
+L       10.2.2.2/32 is directly connected, Serial0/0/1
+     172.30.0.0/24 is subnetted, 1 subnets
+R       172.30.10.0/24 [120/1] via 10.1.1.1, 00:00:01, Serial0/0/0
+                       [120/1] via 10.2.2.1, 00:00:16, Serial0/0/1
+     209.165.201.0/24 is variably subnetted, 2 subnets, 2 masks
+C       209.165.201.0/24 is directly connected, GigabitEthernet0/1
+L       209.165.201.1/32 is directly connected, GigabitEthernet0/1
+S*   0.0.0.0/0 [1/0] via 209.165.201.2
+
+Pc-A
+ping 172.30.30.3
+Pc-C
+ping ping 172.30.10.3
