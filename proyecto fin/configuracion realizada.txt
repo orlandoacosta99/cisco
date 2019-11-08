@@ -1,0 +1,112 @@
+Configuracion swich de 48 puertos
+
+Switch>en
+Switch#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Switch(config)#vl 5
+Switch(config-vlan)#name Servicios
+Switch(config-vlan)#ex
+Switch(config)#vl 10
+Switch(config-vlan)#name Asistencia
+Switch(config-vlan)#ex
+Switch(config)#vl 8
+Switch(config-vlan)#name Voz-Servicios
+Switch(config-vlan)#ex
+Switch(config)#vl 15
+Switch(config-vlan)#name Voz-Asistencia
+Switch(config-vlan)#ex
+Switch(config)#int range f0/1-8
+Switch(config-if-range)#sw mode acc
+Switch(config-if-range)#sw acc vl 5
+Switch(config-if-range)#sw voice vl 8
+Switch(config-if-range)#ex
+
+----comprobamos 
+
+Switch(config)#do sh vl br
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/10, Fa0/11, Fa0/12, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19, Fa0/20, Fa0/21
+                                                Fa0/22, Fa0/23, Fa0/24, Gig0/1
+                                                Gig0/2
+5    Servicios                        active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9
+8    Voz-Servicios                    active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+
+realizamos lo mismo con las demas vlan
+Switch(config)#int range f0/10-18
+Switch(config-if-range)#sw mode acc
+Switch(config-if-range)#sw acc vl 10
+Switch(config-if-range)#sw voice vl 15
+Switch(config-if-range)#ex
+Switch(config)#do sh vl br
+
+VLAN Name                             Status    Ports
+---- -------------------------------- --------- -------------------------------
+1    default                          active    Fa0/20, Fa0/21, Fa0/22, Fa0/23
+                                                Fa0/24, Gig0/1, Gig0/2
+5    Servicios                        active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+                                                Fa0/9
+8    Voz-Servicios                    active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                                Fa0/5, Fa0/6, Fa0/7, Fa0/8
+10   Asistencia                       active    Fa0/10, Fa0/11, Fa0/12, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19
+15   Voz-Asistencia                   active    Fa0/10, Fa0/11, Fa0/12, Fa0/13
+                                                Fa0/14, Fa0/15, Fa0/16, Fa0/17
+                                                Fa0/18, Fa0/19
+configuramos el puerto 24 en modo trunk
+Switch(config)#int fa0/24
+Switch(config-if)#sw mode tr
+Switch(config-if)#ex
+
+Apagamos los puertos no utilizados 
+Switch(config)#int range fa0/6-8 
+Switch(config-if-range)#no sh
+Switch(config-if-range)#ex
+Switch(config)#int range fa0/15-18 
+Switch(config-if-range)#no sh
+Switch(config-if-range)#
+
+
+router
+
+Router>en 
+Router#conf t
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#int g0/0
+Router(config-if)#no sh
+
+Router(config-if)#
+%LINK-5-CHANGED: Interface GigabitEthernet0/0, changed state to up
+
+%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to up
+
+Router(config-if)#ex
+Router(config)#int g0/0
+Router(config-if)#ip dhcp pool Servicios
+Router(dhcp-config)#
+Router(dhcp-config)#net
+Router(dhcp-config)#network 192.168.20.0 255.255.255.0
+Router(dhcp-config)#def
+Router(dhcp-config)#default-router 192.168.20.1
+Router(dhcp-config)#option 150 ip 192.168.20.1
+Router(dhcp-config)#ex
+Router(config)#ip dhcp pool Voz-Servicios
+Router(dhcp-config)#network 192.168.30.0 255.255.255.0
+Router(dhcp-config)#default-router 192.168.30.1
+Router(dhcp-config)#option 150 ip 192.168.30.1
+Router(dhcp-config)#
+
+
+https://www.youtube.com/watch?v=w9lGDvdQWdY
+
+
+ 
+
